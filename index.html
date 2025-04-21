@@ -38,21 +38,18 @@
             const dampX = new Damp(circle.x);
             const dampY = new Damp(circle.y);
 
-            // Request permission for device orientation
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ devices
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
-                        } else {
-                            console.log('Permission to access device orientation was denied');
-                        }
-                    })
-                    .catch(console.error);
-            } else {
-                // Non-iOS 13+ devices
-                window.addEventListener('deviceorientation', handleOrientation);
+            // Request permission for device orientation using ZIM's PermissionAsk
+            const permissionType = "deviceorientation";
+            const ask = new PermissionAsk(init, permissionType);
+            
+            function init(yes) {
+                if (yes) {
+                    // User granted permission
+                    F.on("deviceorientation", handleOrientation);
+                } else {
+                    // User denied permission
+                    console.log('Permission to access device orientation was denied');
+                }
             }
 
             // Handle device orientation
@@ -68,9 +65,6 @@
                 // Update stage
                 S.update();
             }
-
-            // Remove the old event listener
-            F.on("deviceorientation", handleOrientation);
 
             // rectangle for color feedback
             const backgroundRect = new Rectangle(W, H, "#000000")
