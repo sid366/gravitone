@@ -38,8 +38,25 @@
             const dampX = new Damp(circle.x);
             const dampY = new Damp(circle.y);
 
+            // Request permission for device orientation
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+ devices
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                        } else {
+                            console.log('Permission to access device orientation was denied');
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Non-iOS 13+ devices
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+
             // Handle device orientation
-            F.on("deviceorientation", e => {
+            function handleOrientation(e) {
                 // Get rotation values and scale them for movement
                 const rotX = e.rotation.x;
                 const rotY = e.rotation.y;
@@ -50,7 +67,10 @@
                 
                 // Update stage
                 S.update();
-            });
+            }
+
+            // Remove the old event listener
+            F.on("deviceorientation", handleOrientation);
 
             // rectangle for color feedback
             const backgroundRect = new Rectangle(W, H, "#000000")
